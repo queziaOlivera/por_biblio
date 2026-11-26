@@ -7,47 +7,59 @@ require_once "../conexao.php";
 
 $titulo = $_POST['titulo'];
 $autor = $_POST['autor'];
-$editora = $_POST['editora'];
+$editor = $_POST['editor'];
 $ano = $_POST['ano'];
 $isbn = $_POST['isbn'];
 $quantidade = $_POST['quantidade'];
 $idcategoria = $_POST['idcategoria'];
 
-$destaque = isset($_POST['destaque']) ? 1 : 0;
+$disponivel = isset($_POST['disponivel']) ? 1 : 0;
 
 $nome_arquivo = $_FILES['foto']['name'];
 $caminho_temporario = $_FILES['foto']['tmp_name'];
 
-$extensao = pathinfo($nome_arquivo, PATHINFO_EXTENSION);
+if (getimagesize($caminho_temporario) === false) {
+    die("Envie um arquivo de imagem válido.");
+}
+
+$extensao = strtolower(pathinfo($nome_arquivo, PATHINFO_EXTENSION));
+
+if (!in_array($extensao, ['jpg', 'jpeg', 'png', 'webp'])) {
+    die("Formato de imagem não permitido.");
+}
 
 $novo_nome = uniqid() . "." . $extensao;
 
 $caminho_destino = "uploads/" . $novo_nome;
 
-move_uploaded_file($caminho_temporario, $caminho_destino);
+if (move_uploaded_file($caminho_temporario, $caminho_destino)) {
 
-$sql = "INSERT INTO tb_livro
-(titulo, autor, editora, ano, isbn, quantidade, foto, destaque, idcategoria)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    $sql = "INSERT INTO tb_livro
+    (titulo, autor, editor, ano, isbn, quantidade, foto, disponivel, tb_categoria_idcategoria)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-$comando = mysqli_prepare($conexao, $sql);
+    $comando = mysqli_prepare($conexao, $sql);
 
-mysqli_stmt_bind_param(
-    $comando,
-    "sssisissi",
-    $titulo,
-    $autor,
-    $editora,
-    $ano,
-    $isbn,
-    $quantidade,
-    $novo_nome,
-    $destaque,
-    $idcategoria
-);
+    mysqli_stmt_bind_param(
+        $comando,
+        "sssssisis",
+        $titulo,
+        $autor,
+        $editor,
+        $ano,
+        $isbn,
+        $quantidade,
+        $novo_nome,
+        $disponivel,
+        $idcategoria
+    );
 
-mysqli_stmt_execute($comando);
+    mysqli_stmt_execute($comando);
 
-header("Location: listar_livros.php");
-exit;
+    header("Location: listar_livros.php");
+    exit;
+
+} else {
+    echo "Erro ao enviar a capa do livro.";
+}
 ?>
