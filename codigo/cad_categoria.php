@@ -7,7 +7,7 @@
 </head>
 <body>
     <form action="salvar_categoria.php" method="post">
-        Nome do trabalho: <br>
+        Nome de Categoria: <br>
         <input type="text" name="nome"> <br><br>
         
         Descrição: <br>
